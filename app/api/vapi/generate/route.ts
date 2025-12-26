@@ -22,14 +22,14 @@ export async function POST(request: Request) {
     const { text: questions } = await generateText({
       model: google("gemini-1.5-flash"),
       prompt: `Prepare questions for a job interview.
-The job role is ${role}.
-The job experience level is ${level}.
-The tech stack used in the job is: ${techstack}.
-The focus between behavioural and technical questions should lean towards: ${type}.
-The amount of questions required is: ${amount}.
-Return ONLY a JSON array like:
-["Question 1","Question 2","Question 3"]
-No extra text.`,
+        The job role is ${role}.
+        The job experience level is ${level}.
+        The tech stack used in the job is: ${techstack}.
+        The focus between behavioural and technical questions should lean towards: ${type}.
+        The amount of questions required is: ${amount}.
+        Return ONLY a JSON array like:
+        ["Question 1","Question 2","Question 3"]
+        No extra text.`,
     });
 
     let parsedQuestions;
