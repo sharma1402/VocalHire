@@ -132,9 +132,10 @@ const Agent = ({
 
   // GENERATE flow (Builder)
   if (type === "generate") {
+    console.log("Starting builder with userId:", userId);
     await vapi.start(BUILDER_ASSISTANT_ID, {
       variableValues: {
-        userid: userId,
+        userId: userId,
         username: userName,
       },
     });
