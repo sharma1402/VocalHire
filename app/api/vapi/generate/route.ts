@@ -8,9 +8,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { type, role, level, techstack, amount, userid } = body;
+    const { type, role, level, techstack, amount, userId } = body;
 
-    if (!role || !level || !techstack || !amount) {
+    if (!role || !level || !techstack || Number(amount) <= 0) {
       return Response.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
       questions: parsed.questions,
 
-      userId: userid,
+      userId: userId,
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
