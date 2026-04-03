@@ -23,9 +23,8 @@ interface SavedMessage {
 const Agent = ({
   userName,
   userId,
-  interviewId,
-  feedbackId,
   type,
+  interviewId,
 }: AgentProps) => {
   const router = useRouter();
 
@@ -115,17 +114,17 @@ const Agent = ({
     //   //   router.push("/");
     //   }
     // };
-
+    if (callStatus !== CallStatus.FINISHED) return;
     if (callStatus === CallStatus.FINISHED) {
       if (type === "generate") {
         // Interview Builder finished
-        router.push("/");
+        setTimeout(() => router.push("/"), 300);
         } else {
           // Interview finished
           // handleGenerateFeedback(messages);
         }
       }
-    }, [messages, callStatus, feedbackId, interviewId, router, type, userId, generatedInterviewId]);
+    }, [callStatus, router, type]);
 
   const handleCall = async () => {
   setCallStatus(CallStatus.CONNECTING);
@@ -157,7 +156,6 @@ const Agent = ({
   };
 
   const handleDisconnect = () => {
-    setCallStatus(CallStatus.FINISHED);
     vapi.stop();
   };
 
