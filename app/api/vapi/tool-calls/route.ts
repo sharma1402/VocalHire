@@ -87,7 +87,7 @@ export async function POST(req: Request) {
 
       // ---------- load_interview ----------
       if (fnName === "load_interview") {
-        const id = args.id || args.interviewId;
+        const id = args.interviewId;
 
         if (!id) {
           results.push({
@@ -118,6 +118,7 @@ export async function POST(req: Request) {
         result: { success: false, error: `Unknown function: ${fnName}` },
       });
     } catch (e: any) {
+      console.error("tool-calls fatal error:", e);
       results.push({
         toolCallId,
         result: { success: false, error: e?.message || String(e) },

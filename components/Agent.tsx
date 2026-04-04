@@ -100,18 +100,18 @@ const Agent = ({
     }
 
     // const handleGenerateFeedback = async (msgs: SavedMessage[]) => {
-    //   // const { success, feedbackId: id } = await createFeedback({
-    //   //   interviewId: interviewId!,
-    //   //   userId: userId!,
-    //   //   transcript: msgs,
-    //   //   feedbackId,
-    //   // });
+    //   const { success, feedbackId: id } = await createFeedback({
+    //     interviewId: interviewId!,
+    //     userId: userId!,
+    //     transcript: msgs,
+    //     feedbackId,
+    //   });
 
-    //   // if (success && id) {
-    //   //   router.push(`/interview/${interviewId}/feedback`);
-    //   // } else {
-    //   //   console.log("Error saving feedback");
-    //   //   router.push("/");
+    //   if (success && id) {
+    //     router.push(`/interview/${interviewId}/feedback`);
+    //   } else {
+    //     console.log("Error saving feedback");
+    //     router.push("/");
     //   }
     // };
     if (callStatus !== CallStatus.FINISHED) return;
