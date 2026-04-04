@@ -149,7 +149,7 @@ const Agent = ({
   }
 
   await vapi.start(INTERVIEWER_ASSISTANT_ID, {
-    variableValues: {
+    metadata: {
       interviewId,
       username: userName,
       },
