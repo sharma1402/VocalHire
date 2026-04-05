@@ -45,10 +45,8 @@ const Agent = ({
     const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
 
     const onMessage = (message: any) => {
-    // TEMP: see all events from Vapi
     console.log("VAPI MESSAGE:", message);
 
-    // transcripts
     if (message.type === "transcript" && message.transcriptType === "final") {
       const newMessage = { role: message.role, content: message.transcript };
       setMessages((prev) => [...prev, newMessage]);
@@ -160,7 +158,7 @@ const Agent = ({
     },
   });
   };
-  
+
   const handleDisconnect = () => {
     vapi.stop();
   };
