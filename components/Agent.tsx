@@ -73,8 +73,11 @@ const Agent = ({
     const onSpeechStart = () => setIsSpeaking(true);
     const onSpeechEnd = () => setIsSpeaking(false);
 
-    const onError = (error: Error) => {
-      console.log("Vapi Error:", error);
+    const onError = (e: any) => {
+      console.log("Vapi error (full):", e);
+      console.log("Vapi error.error:", e?.error);
+      console.log("Vapi error.error.error:", e?.error?.error);
+      console.log("Vapi error.error.message:", e?.error?.message);
     };
 
     vapi.on("call-start", onCallStart);
