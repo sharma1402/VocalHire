@@ -143,18 +143,24 @@ const Agent = ({
 
   // INTERVIEW flow (Interviewer)
   if (!interviewId) {
-    console.log("Missing interviewId for interview call");
+    console.log("Missing interviewId fdor interview call");
     router.push("/");
     return;
   }
 
-  await vapi.start(INTERVIEWER_ASSISTANT_ID, {
-    metadata: {
-      interviewId,
-      username: userName,
+  await vapi.start(
+    INTERVIEWER_ASSISTANT_ID,
+    {
+      assistantOverrides: {
+        variableValues: { 
+          interviewId, 
+          username: userName 
+        },
       },
-    });
-  };
+    } as any
+  );
+  return;
+  }
 
   const handleDisconnect = () => {
     vapi.stop();
