@@ -148,19 +148,14 @@ const Agent = ({
     return;
   }
 
-  await vapi.start(
-    INTERVIEWER_ASSISTANT_ID,
-    {
-      assistantOverrides: {
-        variableValues: { 
-          interviewId, 
-          username: userName 
-        },
+  await vapi.start({
+    assistantId: INTERVIEWER_ASSISTANT_ID,
+    assistantOverrides: {
+      variableValues: { interviewId, username: userName },
       },
-    } as any
-  );
-  return;
-  }
+    } as any);
+  };
+
 
   const handleDisconnect = () => {
     vapi.stop();
