@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
-// import { createFeedback } from "@/lib/actions/feedback";
+import { createFeedback } from "@/lib/actions/general.action";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -100,29 +100,26 @@ const Agent = ({
       setLastMessage(messages[messages.length - 1].content);
     }
 
-    // const handleGenerateFeedback = async (msgs: SavedMessage[]) => {
-    //   const { success, feedbackId: id } = await createFeedback({
-    //     interviewId: interviewId!,
-    //     userId: userId!,
-    //     transcript: msgs,
-    //     feedbackId,
-    //   });
+    const handleGenerateFeedback = async (msgs: SavedMessage[]) => {
+      const { success, feedbackId: id } = await createFeedback({
+        interviewId: interviewId!,
+        userId: userId!,
+        transcript: msgs,
+      });
 
-    //   if (success && id) {
-    //     router.push(`/interview/${interviewId}/feedback`);
-    //   } else {
-    //     console.log("Error saving feedback");
-    //     router.push("/");
-    //   }
-    // };
-    if (callStatus !== CallStatus.FINISHED) return;
+      if (success && id) {
+        router.push(`/interview/${interviewId}/feedback`);
+      } else {
+        console.log("Error saving feedback");
+        router.push("/");
+      }
+    };
+
     if (callStatus === CallStatus.FINISHED) {
       if (type === "generate") {
-        // Interview Builder finished
-        setTimeout(() => router.push("/"), 300);
+        router.push(`/interview/${generatedInterviewId}/feedback`);
         } else {
-          // Interview finished
-          // handleGenerateFeedback(messages);
+          handleGenerateFeedback(messages);
         }
       }
     }, [callStatus, router, type]);

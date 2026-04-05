@@ -64,20 +64,20 @@ export async function POST(req: Request) {
           const { text } = await generateText({
             model: google("gemini-2.5-flash"),
             prompt: `
-You are an interview preparation system.
-Job Role: ${role}
-Experience Level: ${level}
-Tech Stack: ${techstack}
-Question Focus: ${type}
-Generate ${Number(amount)} interview questions
+              You are an interview preparation system.
+              Job Role: ${role}
+              Experience Level: ${level}
+              Tech Stack: ${techstack}
+              Question Focus: ${type}
+              Generate ${Number(amount)} interview questions
 
-Rules:
-- Only return valid JSON
-- No explanation
-- No extra text
+              Rules:
+              - Only return valid JSON
+              - No explanation
+              - No extra text
 
-Return format:
-{ "questions": ["question 1", "question 2", "question 3"] }
+              Return format:
+              { "questions": ["question 1", "question 2", "question 3"] }
             `.trim(),
           });
 
