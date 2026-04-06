@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -20,13 +20,7 @@ interface SavedMessage {
   content: string;
 }
 
-const Agent = ({
-  userName,
-  userId,
-  type,
-  interviewId,
-  questions,
-}: AgentProps) => {
+const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) => {
   const router = useRouter();
 
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
@@ -35,37 +29,75 @@ const Agent = ({
   const [lastMessage, setLastMessage] = useState<string>("");
   const [generatedInterviewId, setGeneratedInterviewId] = useState<string | null>(null);
 
-  // Assistant IDs from env (must be NEXT_PUBLIC_ because this is a client component)
-  const BUILDER_ASSISTANT_ID =
-    process.env.NEXT_PUBLIC_VAPI_BUILDER_ASSISTANT_ID!;
-  const INTERVIEWER_ASSISTANT_ID =
-    process.env.NEXT_PUBLIC_VAPI_INTERVIEWER_ASSISTANT_ID!;
+  // Always-latest transcript buffer (prevents missing final lines on call-end)
+  const messagesRef = useRef<SavedMessage[]>([]);
+  const hasHandledEndRef = useRef(false); // prevent double-run if call-end fires twice
+
+  const BUILDER_ASSISTANT_ID = process.env.NEXT_PUBLIC_VAPI_BUILDER_ASSISTANT_ID!;
+  const INTERVIEWER_ASSISTANT_ID = process.env.NEXT_PUBLIC_VAPI_INTERVIEWER_ASSISTANT_ID!;
+
+  const handleGenerateFeedback = async () => {
+    const res = await createFeedback({
+      interviewId: interviewId!,
+      userId: userId!,
+      transcript: messagesRef.current,
+    });
+
+    if (res.success) {
+      router.push(`/interview/${interviewId}/feedback`);
+    } else {
+      console.log("Error saving feedback:", (res as any).error);
+      router.push("/");
+    }
+  };
 
   useEffect(() => {
-    const onCallStart = () => setCallStatus(CallStatus.ACTIVE);
-    const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
+    const onCallStart = () => {
+      hasHandledEndRef.current = false;
+      // reset transcript for new call
+      messagesRef.current = [];
+      setMessages([]);
+      setLastMessage("");
+      setCallStatus(CallStatus.ACTIVE);
+    };
+
+    const onCallEnd = async () => {
+      setCallStatus(CallStatus.FINISHED);
+
+      if (hasHandledEndRef.current) return;
+      hasHandledEndRef.current = true;
+
+      if (type === "generate") {
+        router.push(`/interview/${generatedInterviewId}/feedback`);
+        return;
+      }
+
+      // allow final transcript messages to flush in
+      await new Promise((r) => setTimeout(r, 1200));
+
+      await handleGenerateFeedback();
+    };
 
     const onMessage = (message: any) => {
-    console.log("VAPI MESSAGE:", message);
+      console.log("VAPI MESSAGE:", message);
 
-    if (message.type === "transcript" && message.transcriptType === "final") {
-      const newMessage = { role: message.role, content: message.transcript };
-      setMessages((prev) => [...prev, newMessage]);
-      return;
-    }
+      // Collect final transcript lines
+      if (message.type === "transcript" && message.transcriptType === "final") {
+        const newMessage: SavedMessage = { role: message.role, content: message.transcript };
+        messagesRef.current = [...messagesRef.current, newMessage];
+        setMessages(messagesRef.current);
+        return;
+      }
 
-    // tool results: capture interviewId returned by generate_interview tool
-    if (
-        message.type === "tool-calls-result" ||
-        message.type === "tool-calls" // some SDK versions send tool results under this
-      ) {
-        const interviewId =
+      // Tool results: capture interviewId returned by generate_interview tool
+      if (message.type === "tool-calls-result" || message.type === "tool-calls") {
+        const newInterviewId =
           message?.result?.interviewId ||
           message?.results?.[0]?.result?.interviewId ||
           message?.toolCallList?.[0]?.result?.interviewId;
 
-        if (interviewId) setGeneratedInterviewId(interviewId);
-        console.log("generated interview id:", interviewId);
+        if (newInterviewId) setGeneratedInterviewId(newInterviewId);
+        console.log("generated interview id:", newInterviewId);
       }
     };
 
@@ -94,68 +126,41 @@ const Agent = ({
       vapi.off("speech-end", onSpeechEnd);
       vapi.off("error", onError);
     };
-  }, []);
+  }, [type, interviewId, userId, generatedInterviewId, router]); // keep values fresh
 
+  // Only update last message display
   useEffect(() => {
-    if (messages.length > 0) {
-      setLastMessage(messages[messages.length - 1].content);
-    }
-
-    const handleGenerateFeedback = async (msgs: SavedMessage[]) => {
-      const { success, feedbackId: id } = await createFeedback({
-        interviewId: interviewId!,
-        userId: userId!,
-        transcript: msgs,
-      });
-
-      if (success && id) {
-        router.push(`/interview/${interviewId}/feedback`);
-      } else {
-        console.log("Error saving feedback");
-        router.push("/");
-      }
-    };
-
-    if (callStatus === CallStatus.FINISHED) {
-      if (type === "generate") {
-        router.push(`/interview/${generatedInterviewId}/feedback`);
-        } else {
-          handleGenerateFeedback(messages);
-        }
-      }
-    }, [callStatus, router, type]);
+    if (messages.length > 0) setLastMessage(messages[messages.length - 1].content);
+  }, [messages]);
 
   const handleCall = async () => {
-  setCallStatus(CallStatus.CONNECTING);
+    setCallStatus(CallStatus.CONNECTING);
 
-  // GENERATE flow (Builder)
-  if (type === "generate") {
-    console.log("Starting builder with userId:", userId);
-    await vapi.start(BUILDER_ASSISTANT_ID, {
+    // GENERATE flow (Builder)
+    if (type === "generate") {
+      console.log("Starting builder with userId:", userId);
+      await vapi.start(BUILDER_ASSISTANT_ID, {
+        variableValues: { userId, username: userName },
+      });
+      return;
+    }
+
+    // INTERVIEW flow (Interviewer)
+    if (!interviewId) {
+      console.log("Missing interviewId for interview call");
+      router.push("/");
+      return;
+    }
+
+    console.log("Starting interview call with interviewId:", interviewId, "username:", userName);
+
+    await vapi.start(INTERVIEWER_ASSISTANT_ID, {
       variableValues: {
-        userId: userId,
+        interviewId,
         username: userName,
+        questions: JSON.stringify(questions ?? []),
       },
     });
-    return;
-  }
-
-  // INTERVIEW flow (Interviewer)
-  if (!interviewId) {
-    console.log("Missing interviewId fdor interview call");
-    router.push("/");
-    return;
-  }
-
-  console.log("Starting interview call with interviewId:", interviewId, "username:", userName);
-
-  await vapi.start(INTERVIEWER_ASSISTANT_ID, {
-    variableValues: {
-      interviewId,
-      username: userName,
-      questions: JSON.stringify(questions),
-    },
-  });
   };
 
   const handleDisconnect = () => {
@@ -165,7 +170,6 @@ const Agent = ({
   return (
     <>
       <div className="call-view">
-        {/* AI Interviewer Card */}
         <div className="card-interviewer">
           <div className="avatar">
             <Image
@@ -180,7 +184,6 @@ const Agent = ({
           <h3>AI Interviewer</h3>
         </div>
 
-        {/* User Profile Card */}
         <div className="card-border">
           <div className="card-content">
             <Image
@@ -221,9 +224,7 @@ const Agent = ({
               )}
             />
             <span className="relative">
-              {callStatus === "INACTIVE" || callStatus === "FINISHED"
-                ? "Call"
-                : ". . ."}
+              {callStatus === "INACTIVE" || callStatus === "FINISHED" ? "Call" : ". . ."}
             </span>
           </button>
         ) : (

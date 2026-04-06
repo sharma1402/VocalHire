@@ -65,11 +65,11 @@ export async function createFeedback(params: CreateFeedbackParams) {
         ${formattedTranscript}
 
         Please score the candidate from 0 to 100 in the following areas. Do not add categories other than the ones provided:
-        - **Communication Skills**: Clarity, articulation, structured responses.
-        - **Technical Knowledge**: Understanding of key concepts for the role.
-        - **Problem-Solving**: Ability to analyze problems and propose solutions.
-        - **Cultural & Role Fit**: Alignment with company values and job role.
-        - **Confidence & Clarity**: Confidence in responses, engagement, and clarity.
+        - **Communication Skills**
+        - **Technical Knowledge**
+        - **Problem Solving**
+        - **Cultural Fit**
+        - **Confidence and Clarity**
         `,
       system:
         "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
@@ -97,9 +97,9 @@ export async function createFeedback(params: CreateFeedbackParams) {
     await feedbackRef.set(feedback);
 
     return { success: true, feedbackId: feedbackRef.id };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving feedback:", error);
-    return { success: false };
+    return { success: false, error: String(error?.message ?? error) };
   }
 }
 
