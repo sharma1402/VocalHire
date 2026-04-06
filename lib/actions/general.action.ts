@@ -60,19 +60,31 @@ export async function createFeedback(params: CreateFeedbackParams) {
       model: google("gemini-2.5-flash"),
       schema: feedbackSchema,
       prompt: `
-        You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
+        Return an object that matches this exact JSON shape:
+
+        {
+          "totalScore": 0-100,
+          "categoryScores": [
+            { "name": "Communication Skills", "score": 0-100, "comment": "..." },
+            { "name": "Technical Knowledge", "score": 0-100, "comment": "..." },
+            { "name": "Problem Solving", "score": 0-100, "comment": "..." },
+            { "name": "Cultural Fit", "score": 0-100, "comment": "..." },
+            { "name": "Confidence and Clarity", "score": 0-100, "comment": "..." }
+          ],
+          "strengths": ["..."],
+          "areasForImprovement": ["..."],
+          "finalAssessment": "..."
+        }
+
+        Rules:
+        - Use exactly those 5 category names, exactly once each, in that order.
+        - Use the key "comment" exactly.
+        - Use numbers (not strings) for scores.
+        - strengths and areasForImprovement must each have at least 1 item.
+
         Transcript:
         ${formattedTranscript}
-
-        Please score the candidate from 0 to 100 in the following areas. Do not add categories other than the ones provided:
-        - **Communication Skills**
-        - **Technical Knowledge**
-        - **Problem Solving**
-        - **Cultural Fit**
-        - **Confidence and Clarity**
         `,
-      system:
-        "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
     });
 
     const feedback = {
