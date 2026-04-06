@@ -68,7 +68,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
       hasHandledEndRef.current = true;
 
       if (type === "generate") {
-        router.push(`/interview/${generatedInterviewId}/feedback`);
+        router.push('/');
         return;
       }
 
@@ -151,8 +151,6 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
       router.push("/");
       return;
     }
-
-    console.log("Starting interview call with interviewId:", interviewId, "username:", userName);
 
     await vapi.start(INTERVIEWER_ASSISTANT_ID, {
       variableValues: {
