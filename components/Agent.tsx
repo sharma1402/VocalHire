@@ -25,6 +25,7 @@ const Agent = ({
   userId,
   type,
   interviewId,
+  questions,
 }: AgentProps) => {
   const router = useRouter();
 
@@ -152,6 +153,7 @@ const Agent = ({
     variableValues: {
       interviewId,
       username: userName,
+      questions: JSON.stringify(questions),
     },
   });
   };
