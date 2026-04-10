@@ -72,6 +72,26 @@ export async function signIn(params: SignInParams){
     }
 }
 
+export async function logout() {
+  const cookieStore = await cookies();
+
+  const sessionCookie = cookieStore.get("session")?.value;
+
+  if (sessionCookie) {
+    try {
+      const decodedClaims = await auth.verifySessionCookie(sessionCookie);
+      await auth.revokeRefreshTokens(decodedClaims.sub);
+    } catch (error) {
+      console.log("Error revoking token:", error);
+    }
+  }
+
+  // ❌ Remove session cookie
+  cookieStore.delete("session");
+
+  return { success: true };
+}
+
 export async function setSessionCookie(idToken: string){
     const cookieStore = await cookies();
 
@@ -120,6 +140,6 @@ export async function getCurrentUser(): Promise<User | null> {
 
 export async function isAuthenticated() {
     const user = await getCurrentUser();
-    return !!user; 
+    return user; 
 }
 
