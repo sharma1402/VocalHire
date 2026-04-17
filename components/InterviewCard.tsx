@@ -6,11 +6,18 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import DisplayTechIcons from './DisplayTechIcons';
 import { getFeedbackByInterviewId } from '@/lib/actions/general.action';
+import { getCurrentUser } from '@/lib/actions/auth.action';
 
 const InterviewCard = async ({ id, userId, role, 
     type, techstack, createdAt }: InterviewCardProps) => {
-        const feedback = userId && id 
-        ? await getFeedbackByInterviewId({ interviewId: id, userId }) : null;
+        const user = await getCurrentUser();
+        const isOwner = user && user.id === userId;
+        const feedback = isOwner
+          ? await getFeedbackByInterviewId({
+              interviewId: id!,
+              userId: user.id,
+            })
+          : null;
         const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
         const formattedDate = dayjs(feedback?.createdAt || createdAt || 
             Date.now()).format('MMM D, YYYY')
@@ -50,15 +57,19 @@ const InterviewCard = async ({ id, userId, role,
             <div className='flex flex-row justify-between'>
                 <DisplayTechIcons techStack={techstack} />
 
-                <Button className="btn-primary">
-                    <Link href={feedback 
-                        ? `/interview/${id}/feedback`
-                        : `/interview/${id}`
-                    }>
-                        {feedback ? 'Check Feedback' : 'View Interview'}
-                    </Link>
-
-                </Button>
+                {!user ? (
+                  <Link href={`/sign-in?redirectTo=/interview/${id}`}>
+                    <Button className="btn-primary">Login to Continue</Button>
+                  </Link>
+                ) : isOwner && feedback ? (
+                  <Link href={`/interview/${id}/feedback`}>
+                    <Button className="btn-primary">Check Feedback</Button>
+                  </Link>
+                ) : (
+                  <Link href={`/interview/${id}`}>
+                    <Button className="btn-primary">View Interview</Button>
+                  </Link>
+                )}
             </div>
         </div>
     </div>

@@ -9,24 +9,43 @@ import { getInterviewsByUserId, getLatestInterviews } from '@/lib/actions/genera
 const Page = async () => {
   const user = await getCurrentUser();
 
-  const [userInterviews, latestInterviews] = await Promise.all([
-    getInterviewsByUserId(user?.id || ''),
-    getLatestInterviews({userId: user?.id!})
-  ]);
+  let userInterviews: any[] = [];
+  let allInterviews: any[] = [];
 
-  const hasPastInterviews = (userInterviews ?? []).length > 0;
-  const hasUpcomingInterviews = (latestInterviews ?? []).length > 0;
+  if (user) {
+    // Logged in
+    [userInterviews, allInterviews] = await Promise.all([
+      getInterviewsByUserId(user.id),
+      getLatestInterviews({ userId: "" }) // fetch ALL
+    ]).then(([interviews, latest]) => [
+      interviews ?? [],
+      latest ?? []
+    ]);
+  } else {
+    //Guest → fetch ALL interviews
+    allInterviews = (await getLatestInterviews({ userId: "" })) ?? [];
+  }
+
+  //Only for logged in: separate others
+  const otherInterviews = user
+    ? allInterviews.filter(
+        (interview) => interview.userId !== user.id
+      )
+    : allInterviews;
+
   return (
     <>
+      {/* HERO */}
       <section className="card-cta">
         <div className="flex flex-col gap-6 max-w-lg">
           <h2>Get Interview-Ready with AI-Powered Practice & Feedback</h2>
+
           <p className="text-lg">
-            Practice on real interview questions, receive instant AI feedback on your responses, and boost your confidence for the big day.
+            Practice on real interview questions, receive instant AI feedback, and boost your confidence.
           </p>
 
           <Button asChild className='btn-primary max-sm:w-full'>
-            <Link href="/interview">Start an Interview</Link>
+            <Link href={user ? "/interview" : "/sign-in"}>Start an Interview</Link>
           </Button>
         </div>
 
@@ -35,39 +54,41 @@ const Page = async () => {
           alt="robo-dude" 
           width={400} 
           height={400} 
-          className="max-sm:hidden"/>
+          className="max-sm:hidden"
+        />
       </section>
 
-      <section className='flex flex-col gap-6 mt-8'>
-        <h2>Your Interviews</h2>
+      {user && (
+        <section className='flex flex-col gap-6 mt-2'>
+          <h2>Your Interviews</h2>
 
-        <div className='interviews-section'>
-          {
-            hasPastInterviews ? (
-            userInterviews?.map((interview) => (
-              <InterviewCard {...interview} key={interview.id}/>
-            ))) : (
+          <div className='interviews-section'>
+            {userInterviews.length > 0 ? (
+              userInterviews.map((interview) => (
+                <InterviewCard {...interview} user={user} key={interview.id}/>
+              ))
+            ) : (
               <p>You haven't taken any interview yet!</p>
-            )
-          }
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      )}
 
-      <section className='flex flex-col gap-6 mt-8'>
-        <h2>Take an Interview</h2>
+      {/* Everyone sees this */}
+      <section className='flex flex-col gap-6 mt-2'>
+        <h2>{user ? "Take an Interview" : "All Interviews"}</h2>
 
         <div className="interviews-section">
-          {
-            hasUpcomingInterviews ? (
-            latestInterviews?.map((interview) => (
-              <InterviewCard {...interview} key={interview.id}/>
-            ))) : (
-              <p>There are no interviews available</p>
-            )
-          }
+          {otherInterviews.length > 0 ? (
+            otherInterviews.map((interview) => (
+              <InterviewCard {...interview} user={user} key={interview.id}/>
+            ))
+          ) : (
+            <p>No interviews available</p>
+          )}
         </div>
       </section>
-      </>
+    </>
   )
 }
 

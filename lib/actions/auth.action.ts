@@ -86,7 +86,6 @@ export async function logout() {
     }
   }
 
-  // ❌ Remove session cookie
   cookieStore.delete("session");
 
   return { success: true };
@@ -140,6 +139,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
 export async function isAuthenticated() {
     const user = await getCurrentUser();
+    // console.log( "user from getCurrentUser:", user);
     return user; 
 }
 

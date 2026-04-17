@@ -23,7 +23,7 @@ export default function UserMenu({ user }: any) {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/sign-in");
+    router.replace("/");
   };
 
   useEffect(() => {

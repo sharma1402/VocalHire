@@ -12,13 +12,10 @@ export default async function RootLayout({
 }) {
   const user = await isAuthenticated();
 
-  if (!user) redirect("/sign-in");
-
   return (
     <div className="root-layout">
 
       <nav className="flex items-center justify-between px-6 py-4">
-
         {/* Left Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image
@@ -32,9 +29,23 @@ export default async function RootLayout({
           </h2>
         </Link>
 
-        {/* Right Avatar */}
-        <UserMenu user={user} />
-
+        <div className="hidden md:flex items-center gap-8">
+          <Link href="/" className="font-semibold hover:text-purple-400 transition">
+            Home
+          </Link>
+          <Link href="/about" className="font-semibold hover:text-purple-400 transition">
+            About Us
+          </Link>
+          {user ? (
+            <UserMenu user={user} />
+          ) : (
+            <Link href="/sign-in">
+              <button className="bg-purple-500 px-4 py-2 rounded">
+                Sign In
+              </button>
+            </Link>
+          )}
+        </div>
       </nav>
 
       {children}

@@ -28,7 +28,13 @@ const authFormSchema = (type: FormType) => {
   })
 }
 
-const AuthForm = ({ type }: { type: FormType }) => {
+const AuthForm = ({ 
+  type, 
+  redirectTo 
+}: { 
+  type: FormType; 
+  redirectTo?: string 
+}) => {
   const router = useRouter();
   const formSchema = authFormSchema(type);
   // 1. Define your form.
@@ -79,7 +85,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
         })
         
         toast.success('Signed in successfully!');
-        router.push("/");
+        router.push(redirectTo || "/");
       }
     } catch (error){
       console.log(error);

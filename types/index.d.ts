@@ -45,6 +45,8 @@ interface InterviewCardProps {
   type: string;
   techstack: string[];
   createdAt?: string;
+
+  user?: any;
 }
 
 interface AgentProps {
@@ -97,3 +99,5 @@ interface InterviewFormProps {
 interface TechIconProps {
   techStack: string[];
 }
+
+declare module '*.css';

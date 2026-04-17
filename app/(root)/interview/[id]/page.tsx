@@ -10,6 +10,11 @@ import { getCurrentUser } from '@/lib/actions/auth.action';
 const page = async({params} : RouteParams) => {
     const { id } = await params;
     const user = await getCurrentUser();
+
+    if (!user) {
+        redirect(`/sign-in?redirectTo=/interview/${id}`);
+    }
+    
     const interview = await getInterviewsById(id);
 
     if(!interview) redirect('/')
