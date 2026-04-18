@@ -167,6 +167,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
 
   return (
     <>
+      <div className="flex flex-col items-center gap-10">
       <div className="call-view">
         <div className="card-interviewer">
           <div className="avatar">
@@ -230,6 +231,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
             End
           </button>
         )}
+      </div>
       </div>
     </>
   );
